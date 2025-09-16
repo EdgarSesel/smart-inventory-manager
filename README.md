@@ -2,9 +2,8 @@
 
 ## Project Overview
 
-The Smart Inventory Manager is a comprehensive, full-stack application designed to help businesses track, manage, and analyze their inventory with modern, data-driven tools. It features a web dashboard for managers, a companion mobile app for warehouse operators, and a powerful backend with AI-powered forecasting and anomaly detection.
+The Smart Inventory Manager is a full-stack reference application to help teams track, manage, and analyze inventory across a web dashboard and a companion mobile app. The backend exposes a FastAPI REST API backed by a PostgreSQL database; the web UI is a React + MUI dashboard for managers, and the mobile app (Flutter) is focused on fast SKU lookup and stock updates for operators.
 
-This project was built to demonstrate a wide range of modern development skills, including backend API design, frontend development with a major component library, mobile app development, and the practical application of machine learning.
 
 ---
 
@@ -37,35 +36,56 @@ This project was built to demonstrate a wide range of modern development skills,
 ## Setup & Installation
 
 ### 1. Backend
-```bash
+```powershell
+# From the repository root
 cd backend
-# Create a virtual environment
+
+# (Optional) Create a Python virtual environment
 python -m venv venv
-source venv/bin/activate 
-# Install dependencies
-pip install -r requirements.txt 
-# Create a .env file (copy from .env.template) and fill in your details
-# Start the database
-docker-compose up -d
-# Run the server
-uvicorn main:app --reload
+# Windows PowerShell activation (use CMD or Bash equivalent if needed):
+.\venv\Scripts\Activate.ps1
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Copy or create a .env file (the repo includes a .env.template you can copy)
+# Edit backend/.env to set DATABASE_URL, SECRET_KEY, etc.
+
+# Start the PostgreSQL database using the project's Docker Compose file
+# (this will create a container named `smart-inventory-db` in development)
+docker-compose -f .\backend\docker-compose.yml up -d
+
+# Important: recent changes use a soft-delete column on products named `is_deleted`.
+# If you upgraded code but not the DB schema you may see errors such as:
+#   "column products.is_deleted does not exist"
+# Fix quickly by running the following inside the DB container (see next section for alternatives):
+docker exec -i smart-inventory-db psql -U admin -d inventory_db -c "ALTER TABLE products ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN NOT NULL DEFAULT FALSE;"
+
+# Run the FastAPI server (development)
+uvicorn main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 ### 2. Frontend
-```bash
+```powershell
 cd frontend
 # Install dependencies
 npm install
-# Start the development server
+# Start the development server (default: http://localhost:3000)
 npm start
 ```
 
 ### 3. Mobile App
-```bash
+```powershell
 cd mobile_app
-# Get dependencies
+# Get Flutter dependencies
 flutter pub get
-# Update the IP address in lib/services/api_service.dart to match your backend server
-# Run the app on a connected emulator or device
+
+# IMPORTANT: open `lib/services/api_service.dart` and set the backend base URL to match
+# your development host. Examples:
+# - Android emulator (Android Studio): http://10.0.2.2:8000
+# - iOS simulator: http://localhost:8000
+# - Real device: use your machine's LAN IP, e.g. http://192.168.1.42:8000
+
+# Run the app on an attached device or emulator
 flutter run
 ```
