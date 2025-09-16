@@ -2,6 +2,7 @@
 
 import uuid
 from sqlalchemy import Column, String, Text, Integer
+from sqlalchemy import Boolean
 from sqlalchemy.dialects.postgresql import UUID
 from database import Base
 
@@ -14,4 +15,4 @@ class Product(Base):
     description = Column(Text, nullable=True)
     reorder_point = Column(Integer, default=10, nullable=False)
     quantity_on_hand = Column(Integer, default=0, nullable=False)
-    reorder_point = Column(Integer, default=10, nullable=False)
+    is_deleted = Column(Boolean, default=False, nullable=False)

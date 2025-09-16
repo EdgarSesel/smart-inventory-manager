@@ -12,7 +12,14 @@ def get_user_by_email(db: Session, email: str):
 def create_user(db: Session, user: user_schema.UserCreate):
     """Creates a new user, hashing the password before storing."""
     hashed_password = get_password_hash(user.password)
-    db_user = user_model.User(email=user.email, hashed_password=hashed_password)
+    user_count = db.query(user_model.User).count()
+    user_role = "manager" if user_count == 0 else "operator"
+
+    db_user = user_model.User(
+        email=user.email,
+        hashed_password=hashed_password,
+        role=user_role # Assign the determined role
+    )
     db.add(db_user)
     db.commit()
     db.refresh(db_user)

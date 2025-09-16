@@ -30,6 +30,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Future<void> _logout() async {
     await _apiService.logout();
+    if (!mounted) return;
     Navigator.of(context).pushAndRemoveUntil(
       MaterialPageRoute(builder: (context) => const LoginScreen()),
       (Route<dynamic> route) => false,
@@ -42,8 +43,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         builder: (context) => StockUpdateScreen(prefilledSku: sku),
       ),
     ).then((_) {
-      // This .then() block runs when we navigate BACK from the update screen.
-      // It calls our helper function to refresh the product list.
+      // This runs when we return from the update screen, refreshing the list
       _fetchProducts();
     });
   }
@@ -62,7 +62,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () async => _fetchProducts(),
+        onRefresh: () async { _fetchProducts(); },
         child: FutureBuilder<List<Product>>(
           future: _productsFuture,
           builder: (context, snapshot) {
@@ -76,22 +76,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
             final products = snapshot.data!;
             return ListView.builder(
+              padding: const EdgeInsets.all(8.0),
               itemCount: products.length,
               itemBuilder: (context, index) {
                 final product = products[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+                  elevation: 2,
+                  margin: const EdgeInsets.symmetric(vertical: 4.0),
                   child: ListTile(
-                    title: Text(product.name),
+                    title: Text(product.name, style: const TextStyle(fontWeight: FontWeight.bold)),
                     subtitle: Text('SKU: ${product.sku}'),
-                    trailing: Text(
-                      'Qty: ${product.quantityOnHand}',
-                      style: Theme.of(context).textTheme.titleMedium,
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Qty: ${product.quantityOnHand}',
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.inventory_2),
+                          tooltip: 'Update Stock',
+                          onPressed: () => _navigateToStockUpdate(sku: product.sku),
+                        ),
+                      ],
                     ),
-                    onTap: () {
-                      // Navigate by tapping the whole card, pre-filling the SKU
-                      _navigateToStockUpdate(sku: product.sku);
-                    },
+                    onTap: () => _navigateToStockUpdate(sku: product.sku),
                   ),
                 );
               },
@@ -100,10 +110,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Navigate without pre-filling the SKU for a "fresh scan"
-          _navigateToStockUpdate();
-        },
+        onPressed: () => _navigateToStockUpdate(), // For a "fresh scan"
         tooltip: 'Scan New Item',
         child: const Icon(Icons.qr_code_scanner),
       ),

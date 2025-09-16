@@ -7,22 +7,29 @@ const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('authToken'));
+  // NAUJAS STATE ROLĖS SAUGOJIMUI
+  const [userRole, setUserRole] = useState(localStorage.getItem('userRole'));
   const navigate = useNavigate();
 
   const login = async (email, password) => {
     const data = await apiLogin(email, password);
+    // SAUGOME NE TIK TOKENĄ, BET IR ROLĘ
     localStorage.setItem('authToken', data.access_token);
+    localStorage.setItem('userRole', data.user_role);
     setToken(data.access_token);
-    navigate('/'); // Redirect to dashboard on successful login
+    setUserRole(data.user_role);
+    navigate('/');
   };
 
   const logout = () => {
     localStorage.removeItem('authToken');
+    localStorage.removeItem('userRole'); // NEPAMIRŠKITE IŠTRINTI IR ROLĖS
     setToken(null);
-    navigate('/login'); // Redirect to login on logout
+    setUserRole(null);
+    navigate('/login');
   };
 
-  const value = { token, login, logout };
+  const value = { token, userRole, login, logout }; // PATEIKIAME ROLĘ PER KONTEKSTĄ
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

@@ -65,7 +65,6 @@ export const getDashboardKPIs = async () => {
   }
 };
 
-// --- NEW FUNCTIONS ---
 export const getProductDetails = async (productId) => {
   try {
     const response = await apiClient.get(`/products/${productId}`);
@@ -114,6 +113,33 @@ export const getAnomalies = async () => {
 export const getAnomaliesForProduct = async (productId) => {
   try {
     const response = await apiClient.get(`/analytics/anomalies/${productId}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const createProduct = async (productData) => {
+  try {
+    const response = await apiClient.post('/products/', productData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const updateProduct = async (productId, productData) => {
+  try {
+    const response = await apiClient.put(`/products/${productId}`, productData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deleteProduct = async (productId) => {
+  try {
+    const response = await apiClient.delete(`/products/${productId}`);
     return response.data;
   } catch (error) {
     throw error;
